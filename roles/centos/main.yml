@@ -1,0 +1,73 @@
+- name: Install All Prerequisites
+  dnf:
+    name:
+      - java-1.8.0-openjdk
+      - epel-release
+      - wget
+      - which
+    state: present
+  become: yes
+
+- name: Add Elasticsearch RPM Repo
+  shell: rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+- name: Add Elasticsearch Repo
+  copy:
+    content: |
+      [elasticsearch-7.x]
+      name=Elasticsearch repository for 7.x packages
+      baseurl=https://artifacts.elastic.co/packages/7.x/yum
+      gpgcheck=1
+      gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      enabled=1
+      autorefresh=1
+      type=rpm-md
+    dest: /etc/yum.repos.d/elasticsearch.repo
+  become: yes
+
+- name: INSTALL ELASTICSEARCH (CENTOS)
+  yum:
+    name: elasticsearch
+    state: present
+  become: yes
+
+- name: Enable and Start Elasticsearch Service
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started
+  become: yes
+
+- name: INSTALL KIBANA FOR CENTOS
+  yum:
+    name: kibana
+    state: present
+  become: yes
+
+- name: ENABLE AND START KIBANA SERVICE
+  systemd:
+    name: kibana
+    enabled: yes
+    state: started
+  become: yes
+
+- name: INSTALL LOGSTASH FOR CENTOS
+  yum:
+    name: logstash
+    state: present
+  become: yes
+
+- name: ENABLE AND START LOGSTASH SERVICE
+  systemd:
+    name: logstash
+    enabled: yes
+    state: started
+  become: yes
+
+- name: RESTART KIBANA AND ELASTICSEARCH
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - elasticsearch
+    - kibana
